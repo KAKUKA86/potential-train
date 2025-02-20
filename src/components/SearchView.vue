@@ -3,10 +3,9 @@ import {Search} from '@element-plus/icons-vue'
 import {onMounted, reactive, ref} from "vue";
 import axios from 'axios';
 import {useWordStore} from "../store/useWordStore.ts";
-import {ElMessage,ElDialog} from "element-plus";
+import {ElMessage, ElDialog} from "element-plus";
 import router from "../router";
 
-const handleSpanValue = ref(0)
 const searchObj = reactive({
   word: '',
   current: 1,
@@ -26,7 +25,17 @@ const inputWidth = ref('500px')
 
 const wordStore = useWordStore()
 
+const dialogVisible = ref(false)
+const resultVisible = ref(false)
+const historyVisible = ref(true)
 
+const confirmCleanHistory = () => {
+  dialogVisible.value = false;
+  localStorage.removeItem("userHistory");
+  router.go(0);
+};
+
+//开始搜索
 function submitSearch() {
   if (searchObj.word == '') {
     ElMessage.warning("请输入查询单词")
@@ -45,44 +54,29 @@ function submitSearch() {
     //数据处理
     if (res.status == 200) {
       wordStore.data = res.data
-
-      const history = localStorage.getItem("userHistory")
-
-      if (history) {
-        userHistory.value = JSON.parse(history);
-      }
-      //若历史记录长度已经超过6条，则删除最早的一条
-      if (userHistory.value.length >= 6) {
-        userHistory.value.shift()
-      }
-      userHistory.value = [...userHistory.value, searchObj.word]
-      localStorage.setItem("userHistory", JSON.stringify(userHistory.value))
-      // 存储至
-      // wordStore.data = res.data
-      // //控制边距
-      // handleSpanValue.value = 0
-      // inputWidth.value = '200px'
-      // //session控制
-      // sessionStorage.setItem("handleSpanValue", handleSpanValue.value.toString())
-      // //向localStory中存储历史记录
-      // userHistory.words.push(searchObj.word)
-      // console.log(userHistory.words)
-      // localStorage.setItem("userHistory", JSON.stringify(userHistory.words))
-      // const storeHistory = localStorage.getItem("userHistory")
-      // const parsedHistory = JSON.parse(storeHistory)
-      // console.log(parsedHistory)
+      resultVisible.value = true
+      historyVisible.value = false
+      userHistoryController()
     }
+  }).catch((err: any) => {
+    console.log(err)
   })
 }
-// const handleSpanValue = ref(0)
 
-const dialogVisible = ref(false)
+function userHistoryController() {
+  const history = localStorage.getItem("userHistory")
+  if (history) {
+    userHistory.value = JSON.parse(history);
+  }
+  //若历史记录长度已经超过6条，则删除最早的一条
+  if (userHistory.value.length >= 6) {
+    userHistory.value.shift()
+  }
+  userHistory.value = [...userHistory.value, searchObj.word]
+  localStorage.setItem("userHistory", JSON.stringify(userHistory.value))
 
-const confirmCleanHistory = () => {
-  dialogVisible.value = false;
-  localStorage.removeItem("userHistory");
-  router.go(0);
-};
+}
+
 
 </script>
 
@@ -96,7 +90,9 @@ const confirmCleanHistory = () => {
         <el-col span="6">
           <el-input
               v-model="searchObj.word"
-              :style="{width: inputWidth}"
+              :style="{
+                width: inputWidth
+              }"
               size="large"
               placeholder="查询单词"
               :prefix-icon="Search"
@@ -106,22 +102,37 @@ const confirmCleanHistory = () => {
           <el-button size="large" type="primary" @click="submitSearch">查询</el-button>
         </el-col>
       </el-row>
+
+
       <!--      结果集-->
-      <el-row justify="center" style="margin-top: 20px" v-show="false">
+      <el-row justify="center" style="margin-top: 20px" v-show="resultVisible">
         <el-col span="6">
           <el-card style="min-width: 587px;min-height: 250px" shadow="hover">
-            <template #header><span>结果</span><span style="font-size: 10px;color: #737373">神</span></template>
+            <template #header><span>结果</span><span style="font-size: 10px;color: #737373"></span></template>
+            <template #default>
+              <div v-for="(item, index) in wordStore.data.data" :key="index">
+                <el-card shadow="hover" style="margin-top: 10px">
+                  <div style="font-size: 20px" @click="">{{ item.word }} | {{ item.hiragana }}
+                    {{ item.pronunciation }}
+                  </div>
+                </el-card>
+              </div>
+            </template>
           </el-card>
         </el-col>
       </el-row>
+
+
       <!--      历史记录-->
-      <el-row justify="center" style="margin-top: 20px" v-show="true">
+      <el-row justify="center" style="margin-top: 20px" v-show="historyVisible">
         <el-col span="6">
           <el-card style="min-width: 587px; min-height: 250px;" shadow="hover">
             <template #header>
               <span>历史记录</span>
               <span style="font-size: 10px; color: #737373;">（仅显示最近6条）</span>
-              <span style="float: right"><el-button size="small" type="danger" @click="dialogVisible = true">清除历史记录</el-button></span>
+              <span style="float: right">
+                <el-button size="small" type="danger" @click="dialogVisible = true">清除历史记录</el-button>
+              </span>
             </template>
             <template #default>
               <el-timeline>
@@ -133,18 +144,19 @@ const confirmCleanHistory = () => {
           </el-card>
         </el-col>
       </el-row>
+
     </el-main>
   </el-container>
   <el-dialog
       v-model="dialogVisible"
       title="确认清除"
-      width="500"
-  >
+      width="500">
     <span>您确定要清除历史记录吗？</span>
-    <template #footer><div slot="footer" class="dialog-footer">
-      <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" @click="confirmCleanHistory">确认</el-button>
-    </div>
+    <template #footer>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmCleanHistory">确认</el-button>
+      </div>
     </template>
   </el-dialog>
 </template>
