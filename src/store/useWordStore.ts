@@ -1,24 +1,20 @@
-import {defineStore} from "pinia";
+import { defineStore } from "pinia";
+import { Paraphrase } from './useParaphrasesStore';
 
-interface data {
-    data : word[]
-}
-
-interface word {
-    wordId: string,
-    word: string,
-    dId: number,
-    hiragana: string,
-    romaji: string,
-    pronunciation: string,
-    paraphrases: [];
-
+export interface Word {
+    wordId: string;
+    word: string;
+    dId: number;
+    hiragana: string;
+    romaji: string;
+    pronunciation: string;
+    paraphrases: Paraphrase[];
 }
 
 export const useWordStore = defineStore('wordStore', {
     state: () => ({
-        data: {} as data,
+        data: [] as Word[],
     }),
     getters: {},
     actions: {}
-})
+});

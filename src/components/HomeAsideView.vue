@@ -4,8 +4,10 @@ import {
   Collection,
   Search,
   Setting,
-  Failed
+  Failed,
+  Edit
 } from '@element-plus/icons-vue'
+import router from "../router";
 
 const handleOpen = (key: string, keyPath: string[]) => {
   console.log(key, keyPath)
@@ -16,7 +18,9 @@ const handleClose = (key: string, keyPath: string[]) => {
 </script>
 
 <template>
-  <div style="font-size: 25px;font-weight: bold;text-align: center;color: #004173;margin-top: 20px" class="mb-2">辞書　じしょ</div>
+  <div style="font-size: 25px;font-weight: bold;text-align: center;color: #004173;margin-top: 20px" class="mb-2">
+    辞書　じしょ
+  </div>
   <el-menu
       default-active="1"
       class="el-menu-vertical-demo"
@@ -24,20 +28,22 @@ const handleClose = (key: string, keyPath: string[]) => {
       @close="handleClose"
       style="margin-top: 20px"
   >
-    <el-menu-item index="1">
+    <el-menu-item index="1"  @click="router.push('search')">
       <el-icon>
-         <Search />
+        <Search/>
       </el-icon>
       <span>搜索</span>
     </el-menu-item>
     <el-menu-item index="2">
       <el-icon>
-        <Collection />
+        <Collection/>
       </el-icon>
       <span>收藏</span>
     </el-menu-item>
     <el-menu-item index="3">
-      <el-icon><List /></el-icon>
+      <el-icon>
+        <List/>
+      </el-icon>
       <span>词单</span>
     </el-menu-item>
     <hr>
@@ -48,8 +54,16 @@ const handleClose = (key: string, keyPath: string[]) => {
       <span>我的</span>
     </el-menu-item>
     <el-menu-item index="5">
-      <el-icon><Failed /></el-icon>
+      <el-icon>
+        <Failed/>
+      </el-icon>
       <span>反馈</span>
+    </el-menu-item>
+    <el-menu-item index="6" @click="router.push('add_word')">
+      <el-icon>
+        <Edit/>
+      </el-icon>
+      <span>添加词汇</span>
     </el-menu-item>
   </el-menu>
 </template>

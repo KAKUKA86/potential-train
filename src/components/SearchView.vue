@@ -2,7 +2,7 @@
 import {Search} from '@element-plus/icons-vue'
 import {onMounted, reactive, ref} from "vue";
 import axios from 'axios';
-import {useWordStore} from "../store/useWordStore.ts";
+import {useWordStore, Word} from "../store/useWordStore.ts";
 import {ElMessage, ElDialog} from "element-plus";
 import router from "../router";
 
@@ -21,13 +21,17 @@ onMounted(() => {
   }
 })
 
-const inputWidth = ref('500px')
-
 const wordStore = useWordStore()
-
 const dialogVisible = ref(false)
 const resultVisible = ref(false)
 const historyVisible = ref(true)
+const moreInfoVisible = ref(false)
+const resultJustify = ref('center')
+const searchJustify = ref('center')
+const state = ref('')
+const leftSpan = ref(24)
+const rightSpan = ref(0)
+const wordMoreInfo = ref<Word>()
 
 const confirmCleanHistory = () => {
   dialogVisible.value = false;
@@ -37,6 +41,7 @@ const confirmCleanHistory = () => {
 
 //开始搜索
 function submitSearch() {
+  searchObj.word = state.value
   if (searchObj.word == '') {
     ElMessage.warning("请输入查询单词")
     return
@@ -54,6 +59,7 @@ function submitSearch() {
     //数据处理
     if (res.status == 200) {
       wordStore.data = res.data
+      console.log(wordStore.data)
       resultVisible.value = true
       historyVisible.value = false
       userHistoryController()
@@ -61,6 +67,23 @@ function submitSearch() {
   }).catch((err: any) => {
     console.log(err)
   })
+}
+
+//使用历史记录搜索
+
+function historySearch(historySearch: string, cb: any) {
+  const history = localStorage.getItem("userHistory")
+  if (history) {
+    userHistory.value = JSON.parse(history);
+  }
+  const results = history ? userHistory.value.filter((item) => item.includes(historySearch)) : []
+  cb(results)
+}
+
+//填充单词
+function fillWord(item: string) {
+  state.value = item
+  submitSearch()
 }
 
 function userHistoryController() {
@@ -74,9 +97,14 @@ function userHistoryController() {
   }
   userHistory.value = [...userHistory.value, searchObj.word]
   localStorage.setItem("userHistory", JSON.stringify(userHistory.value))
-
 }
 
+//显示单词详细信息
+function showMoreWordInfo(index: number) {
+  leftSpan.value = 12
+  rightSpan.value = 12
+  moreInfoVisible.value = true
+}
 
 </script>
 
@@ -86,65 +114,62 @@ function userHistoryController() {
       <div style="text-align: right;font-size: 15px">辞書モデル</div>
     </el-header>
     <el-main>
-      <el-row justify="center" gutter="20" style="margin-top: 100px">
-        <el-col span="6">
-          <el-input
-              v-model="searchObj.word"
-              :style="{
-                width: inputWidth
-              }"
-              size="large"
-              placeholder="查询单词"
-              :prefix-icon="Search"
-              @keyup.enter="submitSearch"/>
-        </el-col>
-        <el-col span="6">
-          <el-button size="large" type="primary" @click="submitSearch">查询</el-button>
-        </el-col>
-      </el-row>
-
-
-      <!--      结果集-->
-      <el-row justify="center" style="margin-top: 20px" v-show="resultVisible">
-        <el-col span="6">
-          <el-card style="min-width: 587px;min-height: 250px" shadow="hover">
-            <template #header><span>结果</span><span style="font-size: 10px;color: #737373"></span></template>
-            <template #default>
-              <div v-for="(item, index) in wordStore.data.data" :key="index">
-                <el-card shadow="hover" style="margin-top: 10px">
-                  <div style="font-size: 20px" @click="">{{ item.word }} | {{ item.hiragana }}
-                    {{ item.pronunciation }}
-                  </div>
-                </el-card>
-              </div>
-            </template>
-          </el-card>
-        </el-col>
-      </el-row>
-
-
-      <!--      历史记录-->
-      <el-row justify="center" style="margin-top: 20px" v-show="historyVisible">
-        <el-col span="6">
-          <el-card style="min-width: 587px; min-height: 250px;" shadow="hover">
-            <template #header>
-              <span>历史记录</span>
-              <span style="font-size: 10px; color: #737373;">（仅显示最近6条）</span>
+      <el-row justify="start">
+        <el-col :span="leftSpan">
+          <!--      搜索框-->
+          <el-row :justify="searchJustify" gutter="20" style="margin-top: 100px">
+            <el-col span="6">
+              <el-autocomplete
+                  v-model="state"
+                  :fetch-suggestions="historySearch"
+                  @keyup.enter="submitSearch"
+                  size="large"
+                  clearable
+                  placeholder="请输入单词"
+                  @select="fillWord"
+              >
+                <template #suffix>
               <span style="float: right">
                 <el-button size="small" type="danger" @click="dialogVisible = true">清除历史记录</el-button>
               </span>
-            </template>
-            <template #default>
-              <el-timeline>
-                <el-timeline-item v-for="(item, index) in userHistory" :key="index" color="blue">
-                  {{ item }}
-                </el-timeline-item>
-              </el-timeline>
-            </template>
-          </el-card>
+                  <el-icon>
+                    <Search/>
+                  </el-icon>
+                </template>
+                <template #default="{item}">
+                  <div class="name">{{ item }}</div>
+                </template>
+              </el-autocomplete>
+            </el-col>
+            <el-col span="6">
+              <el-button size="large" type="primary" @click="submitSearch">查询</el-button>
+            </el-col>
+          </el-row>
+          <!--      结果集-->
+          <el-row :justify="resultJustify" style="margin-top: 20px;" v-show="resultVisible">
+            <el-col span="6">
+              <el-card style="width: 100% ;min-height: 250px;min-width: 500px" shadow="hover">
+                <template #header><span>结果</span><span style="font-size: 10px;color: #737373"></span></template>
+                <template #default>
+                  <div v-for="(searchItem, index) in wordStore.data" :key="index">
+                    <el-card shadow="hover" style="margin-top: 10px">
+                      <div style="font-size: 20px" @click="showMoreWordInfo(index)">
+                        <el-text>{{ searchItem }}</el-text>
+                      </div>
+                    </el-card>
+                  </div>
+                </template>
+              </el-card>
+            </el-col>
+          </el-row>
+        </el-col>
+        <el-col :span="rightSpan" v-show="moreInfoVisible">
+          <!--      单词详细信息-->
+          <el-row justify="start">
+
+          </el-row>
         </el-col>
       </el-row>
-
     </el-main>
   </el-container>
   <el-dialog
