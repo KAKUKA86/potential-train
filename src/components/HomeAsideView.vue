@@ -38,13 +38,13 @@ const handleClose = (key: string, keyPath: string[]) => {
       <el-icon>
         <Collection/>
       </el-icon>
-      <span>收藏</span>
+      <span>コレクション</span>
     </el-menu-item>
     <el-menu-item index="3">
       <el-icon>
         <List/>
       </el-icon>
-      <span>词单</span>
+      <span>単語リスト広場</span>
     </el-menu-item>
     <hr>
     <el-menu-item index="4">

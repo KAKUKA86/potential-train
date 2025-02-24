@@ -14,6 +14,7 @@ export interface Word{
     hiragana?: string | null;
     romaji?: string | null;
     pronunciation?: string | null;
+    dictionaryNames?: string | null;
     paraphrases?: Paraphrase[] | null;
 }
 

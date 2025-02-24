@@ -18,7 +18,8 @@ export const useWordStore = defineStore('wordStore', {
             wordListRecords: [] as Word[],
         } as SearchWord,
         thatWordId:'',
-        wordResult:[] as Paraphrase
+        wordResult:[] as Paraphrase,
+        currentWord:null as Word | null,
     }),
     getters: {},
     actions: {
@@ -30,7 +31,6 @@ export const useWordStore = defineStore('wordStore', {
                     data: {
                         status,
                         message,
-                        searchWord,
                         list
                     }
                 } = await fuzzySearchWordApi(this.searchWord);
