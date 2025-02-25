@@ -49,21 +49,28 @@ const handleClose = (key: string, keyPath: string[]) => {
     <hr>
     <el-menu-item index="4">
       <el-icon>
-        <setting/>
-      </el-icon>
-      <span>我的</span>
-    </el-menu-item>
-    <el-menu-item index="5">
-      <el-icon>
         <Failed/>
       </el-icon>
       <span>反馈</span>
     </el-menu-item>
-    <el-menu-item index="6" @click="router.push('add_word')">
+    <el-menu-item index="5" @click="router.push('add_word')">
       <el-icon>
         <Edit/>
       </el-icon>
       <span>添加词汇</span>
+    </el-menu-item>
+    <el-menu-item index="6" @click="router.push('add_list')">
+      <el-icon>
+        <Edit/>
+      </el-icon>
+      <span>添加词单</span>
+    </el-menu-item>
+    <hr>
+    <el-menu-item index="7" @click="router.push('account')">
+      <el-icon>
+        <setting/>
+      </el-icon>
+      <span>我的</span>
     </el-menu-item>
   </el-menu>
 </template>
